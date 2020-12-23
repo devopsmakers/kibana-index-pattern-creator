@@ -31,7 +31,7 @@ def get_indices_from_elasticsearch(elasticsearch_url, index_prefix):
     '''
     try:
         indices_resp = requests.get(
-            elasticsearch_url + "/_cat/indices?format=json", verify=False)
+            elasticsearch_url + "/_cat/indices?format=json", verify=False, timeout=30)
 
         if indices_resp.status_code == 200:
             indices_data = indices_resp.json()
@@ -102,7 +102,8 @@ def create_index_patterns(kibana_url, patterns, saved_index_pattern_names):
                     kibana_url + '/api/saved_objects/index-pattern',
                     json=payload,
                     headers=headers,
-                    verify=False)
+                    verify=False,
+                    timeout=30)
 
                 if (index_create_resp.status_code) == 200:
                     created += 1
@@ -128,7 +129,8 @@ def get_saved_index_patterns(kibana_url):
         existing_patterns_resp = requests.get(
             kibana_url + '/api/saved_objects/_find?fields=title&fields=type&per_page=10000&type=index-pattern',
             headers=headers,
-            verify=False)
+            verify=False,
+            timeout=30)
 
         if existing_patterns_resp.status_code == 200:
             existing_patterns_data = existing_patterns_resp.json()
@@ -165,7 +167,8 @@ def refresh_field_list(kibana_url, saved_index_patterns):
                 pattern +
                 '&meta_fields=_source&meta_fields=_id&meta_fields=_type&meta_fields=_index&meta_fields=_score',
                 headers=headers,
-                verify=False)
+                verify=False,
+                timeout=30)
 
             if index_fields_resp.status_code == 200:
                 index_fields_data = index_fields_resp.json()
@@ -192,7 +195,8 @@ def refresh_field_list(kibana_url, saved_index_patterns):
                 kibana_url + '/api/saved_objects/index-pattern/' + pattern_id,
                 json=payload,
                 headers=headers,
-                verify=False)
+                verify=False,
+                timeout=30)
 
             if pattern_update_resp.status_code == 200:
                 updated += 1

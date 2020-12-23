@@ -2,3 +2,5 @@
 .gitignore
 LICENSE
 README.md
+venv
+telepresence.log
