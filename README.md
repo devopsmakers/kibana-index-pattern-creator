@@ -12,14 +12,41 @@ You probably get a bit annoyed when a new namespace, app, or other index turns u
 The script: `src/main.py` gets a list of all indexes in Elasticsearch that start with a user specified prefix. It then creates a Kibana index pattern for each one (if it doesn't already exist). It can be run with an environment variable set to refresh the fields on **all** index patterns in Kibana.
 
 ## Mmmkay, how do I do that?
-The script is configured solely by environment variables. It's designed to be run as a `CronJob` in Kubernetes but can be run anywhere.
+The script is configured solely by environment variables. It's designed to be run as a `CronJob` in Kubernetes, but can be run anywhere.
 
 | Variable | Description | Default | Example |
 | -------- | ----------- | ------- | ------- |
 | `LOG_LEVEL` | Sets the log level for the script | `INFO` | `DEBUG` |
-| `KIBANA_URL` | The URL that the script can find Kibana at | `http://kibana:5601` | `http://notadmin:aPassword@kibana.dev.example.com/` |
+| `KIBANA_URL` | The URL that the script can find Kibana at | `http://kibana:5601` | `http://notadmin:aPassword@kibana.dev.example.com` |
 | `ELASTICSEARCH_URL` | The URL that the script can find Elasticsearch at | `http://elasticsearch:9200` | `https://notadmin:aPassword@elasticsearch.logging.svc.cluster.local:9200` |
-| `INDEX_PREFIX` | The prefix that the script should filter Elasticsearch indexes on | `logstash-` | `filebeat-` |
+| `INDEX_PREFIX` | The prefix that the script should filter Elasticsearch indexes on | `logstash-` | `fluentd-` |
 | `EXACT_MATCHES` | Set this to create exact (not wildcard) index patterns | `False` | `yes` |
 | `LAST_CHARACTER` | The last character that should come before the `*` | `-` | `_` |
 | `REFRESH_FIELDS` | Whether to refresh the field lists of all index patterns in Kibana | `False` | `yes` |
+
+### Running the script locally
+If your Elasticsearch and Kibana are in Kubernetes, you can run this script locally using the something like telepresence.io and the service URLs within the cluster.
+
+```bash
+# Setup a venv
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the script
+LOG_LEVEL=DEBUG \
+KIBANA_URL=http://localhost:5601 \
+ELASTICSEARCH_URL=http://localhost:9200 \
+# Other settings
+python3 src/main.py
+
+# To refresh field lists on all index patterns in Kibana
+LOG_LEVEL=DEBUG \
+KIBANA_URL=http://localhost:5601 \
+ELASTICSEARCH_URL=http://localhost:9200 \
+REFRESH_FIELDS=yes \
+# Other settings
+python3 src/main.py
+```
