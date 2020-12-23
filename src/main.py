@@ -39,7 +39,8 @@ def get_indices_from_elasticsearch(elasticsearch_url, index_prefix):
             logger.info('Found {} indexes matching prefix: "{}" in elasticsearch'.format(len(index_list), index_prefix))
             return index_list
 
-        logger.critical('Failed to fetch index list from elasticsearch with status: {} {}'.format(indices_resp.status_code, indices_resp.text))
+        logger.critical('Failed to fetch index list from elasticsearch with status: {} {}'.format(
+            indices_resp.status_code, indices_resp.text))
         sys.exit(1)
 
     except Exception as e:
@@ -107,7 +108,8 @@ def create_index_patterns(kibana_url, patterns, saved_index_pattern_names):
                     created += 1
                 else:
                     failed += 1
-                    logger.warning('Failed to post index pattern: {} to Kibana with status: {} {}'.format(pattern, index_create_resp.status_code, index_create_resp.text))
+                    logger.warning('Failed to post index pattern: {} to Kibana with status: {} {}'.format(
+                        pattern, index_create_resp.status_code, index_create_resp.text))
 
             except Exception as e:
                 logger.exception('Failed to post index pattern to kibana')
@@ -132,7 +134,8 @@ def get_saved_index_patterns(kibana_url):
             existing_patterns_data = existing_patterns_resp.json()
             return existing_patterns_data['saved_objects']
 
-        logger.critical('Failed to get index patterns from kibana with status: {} {}'.format(existing_patterns_resp.status_code, existing_patterns_resp.text))
+        logger.critical('Failed to get index patterns from kibana with status: {} {}'.format(
+            existing_patterns_resp.status_code, existing_patterns_resp.text))
         sys.exit(1)
 
     except Exception as e:
@@ -175,7 +178,6 @@ def refresh_field_list(kibana_url, saved_index_patterns):
             logger.exception('Failed to get field list from kibana for pattern: {}'.format(pattern))
             sys.exit(1)
 
-
         payload = {
             'attributes': {
                 'title': pattern,
@@ -193,7 +195,7 @@ def refresh_field_list(kibana_url, saved_index_patterns):
                 verify=False)
 
             if pattern_update_resp.status_code == 200:
-                updated +=1
+                updated += 1
             else:
                 logger.warning('Failed to put field list to kibana for pattern: {}'.format(pattern))
                 failed += 1
