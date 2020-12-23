@@ -73,7 +73,7 @@ def get_kibana_patterns(indices, exact_patterns, last_pattern_character):
     return index_patterns
 
 
-def create_index_patterns(kibana_url, patterns, saved_index_pattern_names):
+def create_index_patterns(kibana_url, patterns, saved_index_pattern_names, dry_run):
     '''
     Create patterns in kibana for each of our given patterns
     '''
@@ -98,14 +98,15 @@ def create_index_patterns(kibana_url, patterns, saved_index_pattern_names):
             }
 
             try:
-                index_create_resp = requests.post(
-                    kibana_url + '/api/saved_objects/index-pattern',
-                    json=payload,
-                    headers=headers,
-                    verify=False,
-                    timeout=30)
+                if bool(dry_run) is False:
+                   index_create_resp = requests.post(
+                       kibana_url + '/api/saved_objects/index-pattern',
+                       json=payload,
+                       headers=headers,
+                       verify=False,
+                       timeout=30)
 
-                if (index_create_resp.status_code) == 200:
+                if bool(dry_run) or index_create_resp.status_code == 200:
                     created += 1
                 else:
                     failed += 1
@@ -145,7 +146,7 @@ def get_saved_index_patterns(kibana_url):
         sys.exit(1)
 
 
-def refresh_field_list(kibana_url, saved_index_patterns):
+def refresh_field_list(kibana_url, saved_index_patterns, dry_run):
     '''
     Given a list of (all) saved index pattern objects, update the field lists on them
     '''
@@ -191,14 +192,15 @@ def refresh_field_list(kibana_url, saved_index_patterns):
 
         logger.debug('Putting new field mappings for pattern: {} with id: {}'.format(pattern, pattern_id))
         try:
-            pattern_update_resp = requests.put(
-                kibana_url + '/api/saved_objects/index-pattern/' + pattern_id,
-                json=payload,
-                headers=headers,
-                verify=False,
-                timeout=30)
+            if bool(dry_run) is False:
+                pattern_update_resp = requests.put(
+                    kibana_url + '/api/saved_objects/index-pattern/' + pattern_id,
+                    json=payload,
+                    headers=headers,
+                    verify=False,
+                    timeout=30)
 
-            if pattern_update_resp.status_code == 200:
+            if bool(dry_run) or pattern_update_resp.status_code == 200:
                 updated += 1
             else:
                 logger.warning('Failed to put field list to kibana for pattern: {}'.format(pattern))
@@ -240,6 +242,12 @@ if __name__ == "__main__":
     # Should we refresh field lists on all saved patterns?
     refresh_fields = os.getenv('REFRESH_FIELDS', False)
 
+    # Set this to avoid actually creating or updating anything.
+    # Combine with LOG_LEVEL=DEBUG for more output.
+    dry_run = os.getenv('DRY_RUN', False)
+    if bool(dry_run):
+        logger.warning('DRY_RUN set, no changes will be made')
+
     # A list of all indexes in Elasticsearch that match the given prefix
     indices = get_indices_from_elasticsearch(elasticsearch_url, index_prefix)
 
@@ -252,9 +260,9 @@ if __name__ == "__main__":
     saved_index_pattern_names = [
         saved_index_pattern['attributes']['title'] for saved_index_pattern in saved_index_patterns]
 
-    create_index_patterns(kibana_url, patterns, saved_index_pattern_names)
+    create_index_patterns(kibana_url, patterns, saved_index_pattern_names, dry_run)
 
     if bool(refresh_fields):
-        refresh_field_list(kibana_url, saved_index_patterns)
+        refresh_field_list(kibana_url, saved_index_patterns, dry_run)
 
     logger.info('Done')

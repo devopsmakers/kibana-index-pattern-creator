@@ -23,6 +23,7 @@ The script is configured solely by environment variables. It's designed to be ru
 | `EXACT_MATCHES` | Set this to create exact (not wildcard) index patterns | `False` | `yes` |
 | `LAST_CHARACTER` | The last character that should come before the `*` | `-` | `_` |
 | `REFRESH_FIELDS` | Whether to refresh the field lists of all index patterns in Kibana | `False` | `yes` |
+| `DRY_RUN` | Set this to prevent creating or updating index patterns | `False` | `yes` |
 
 ### Running the script locally
 If your Elasticsearch and Kibana are in Kubernetes, you can run this script locally using the something like telepresence.io and the service URLs within the cluster.
